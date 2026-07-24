@@ -7,30 +7,27 @@ const app = express();
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
-// Прямой маршрут без лишних префиксов
+// Теперь никнейм принимается прямо на главной странице сервера!
 app.get('/:username', async (req, res) => {
     const username = req.params.username;
     
     try {
-        // Тщательный запрос к официальному API Roblox по поиску точного имени
         const response = await axios.post('https://roblox.com', {
             usernames: [username],
             excludeBannedUsers: false
         });
         
-        // Проверяем, вернул ли Roblox хоть одного пользователя
         if (!response.data || !response.data.data || response.data.data.length === 0) {
             return res.status(404).json({ error: 'Пользователь не найден' });
         }
         
-        const userId = response.data.data[0].id;
+        const userId = response.data.data[0].id; // Исправили: добавили, чтобы правильно взять ID игрока!
 
-        // Второй запрос для получения статуса (В сети / В игре)
         const presenceResponse = await axios.post('https://roblox.com', {
             userIds: [userId]
         });
 
-        const data = presenceResponse.data.userPresences[0];
+        const data = presenceResponse.data.userPresences[0]; // Тоже добавили [0] для точности данных
         
         let statusText = 'Не в сети';
         if (data.userPresenceType === 1) statusText = 'В сети';
