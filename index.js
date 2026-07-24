@@ -9,8 +9,7 @@ app.use(express.json());
 
 // Главный роут для поиска игрока прямо через косую черту
 app.get('/:username', async (req, res) => {
-    const username = req.params.username;
-    
+    const username = req.query.username || req.params.username;
     try {
         // 1. Находим ID игрока по его имени
         const response = await axios.post('https://roblox.com', {
