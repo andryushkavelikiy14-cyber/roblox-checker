@@ -4,16 +4,15 @@ const cors = require('cors');
 
 const app = express();
 
-// Разрешаем вашему Google Сайту делать запросы
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
-// Главный маршрут для проверки статуса игрока
+// Главный роут для поиска игрока прямо через косую черту
 app.get('/:username', async (req, res) => {
     const username = req.params.username;
     
     try {
-        // 1. Ищем ID пользователя по его никнейму
+        // 1. Находим ID игрока по его имени
         const response = await axios.post('https://roblox.com', {
             usernames: [username],
             excludeBannedUsers: false
@@ -23,10 +22,10 @@ app.get('/:username', async (req, res) => {
             return res.status(404).json({ error: 'Пользователь не найден' });
         }
         
-        // Забираем ID первого найденного игрока из списка
+        // Достаем ID первого игрока из списка
         const userId = response.data.data[0].id;
 
-        // 2. Делаем запрос к API присутствия для получения статуса
+        // 2. Делаем запрос к API присутствия в Roblox
         const presenceResponse = await axios.post('https://roblox.com', {
             userIds: [userId]
         });
@@ -42,7 +41,6 @@ app.get('/:username', async (req, res) => {
         if (data.userPresenceType === 2) statusText = 'В игре';
         if (data.userPresenceType === 3) statusText = 'В Roblox Studio';
 
-        // Отправляем готовый ответ на ваш Google Сайт
         res.json({
             userId: userId,
             presenceType: data.userPresenceType,
@@ -55,6 +53,6 @@ app.get('/:username', async (req, res) => {
     }
 });
 
-// Слушаем порт (ОБЯЗАТЕЛЬНО для хостинга Render)
+// Запуск прослушивания порта (Без этого Render выдает ошибку Failed!)
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
+app.listen(PORT, () => console.log(`Сервер работает на порту ${PORT}`));
