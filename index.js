@@ -11,9 +11,9 @@ app.use(express.json());
 async function getUserId(username) {
     try {
         const response = await axios.post('https://roblox.com', {
-            usernames: [username],
-            excludeBannedUsers: false
-        });
+    usernames: [username],
+    excludeBannedUsers: false
+});
         if (response.data && response.data.data && response.data.data.length > 0) {
             return response.data.data[0].id; // Берем ID самого первого найденного игрока
         }
