@@ -4,7 +4,7 @@ const cors = require('cors');
 
 const app = express();
 
-// Разрешаем абсолютно любые запросы, чтобы Google Сайт не блокировал ответы
+// Разрешаем вашему Google Сайту делать запросы без блокировок
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
@@ -23,6 +23,7 @@ async function getUserId(username) {
     }
 }
 
+// Главный роут для проверки статуса присутствия в Roblox
 app.get('/status/:username', async (req, res) => {
     const username = req.params.username;
     const userId = await getUserId(username);
@@ -54,5 +55,5 @@ app.get('/status/:username', async (req, res) => {
     }
 });
 
-// Экспортируем приложение для корректной работы серверлесс-функций Vercel
+// Экспортируем сервер для корректной работы Vercel
 module.exports = app;
