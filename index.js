@@ -8,12 +8,18 @@ app.use(express.json());
 
 async function getUserId(username) {
     try {
+        // Делаем запрос без жесткого фильтра, чтобы Roblox сам нашел правильного игрока
         const response = await axios.post('https://roblox.com', {
-            keyword: username, limit: 1
+            keyword: username,
+            limit: 1
         });
-        if (response.data.data.length > 0) return response.data.data.id;
+        if (response.data && response.data.data && response.data.data.length > 0) {
+            return response.data.data[0].id; // Берем ID самого первого найденного игрока
+        }
         return null;
-    } catch (e) { return null; }
+    } catch (e) { 
+        return null; 
+    }
 }
 
 app.get('/status/:username', async (req, res) => {
