@@ -3,7 +3,9 @@ const axios = require('axios');
 const cors = require('cors');
 
 const app = express();
-app.use(cors());
+
+// Разрешаем абсолютно любые запросы, чтобы Google Сайт не блокировал ответы
+app.use(cors({ origin: '*' }));
 app.use(express.json());
 
 async function getUserId(username) {
@@ -12,10 +14,8 @@ async function getUserId(username) {
             usernames: [username],
             excludeBannedUsers: false
         });
-        
-        // Добавили, чтобы брать данные ПЕРВОГО пользователя из списка
         if (response.data && response.data.data && response.data.data.length > 0) {
-            return response.data.data[0].id; 
+            return response.data.data[0].id; // Берем ID самого первого найденного игрока
         }
         return null;
     } catch (e) { 
@@ -26,23 +26,33 @@ async function getUserId(username) {
 app.get('/status/:username', async (req, res) => {
     const username = req.params.username;
     const userId = await getUserId(username);
-    if (!userId) return res.status(404).json({ error: 'Не найден' });
+    
+    if (!userId) {
+        return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
     try {
         const presenceResponse = await axios.post('https://roblox.com', {
             userIds: [userId]
         });
+
         const data = presenceResponse.data.userPresences[0];
-        let statusText = 'В сети';
-        if (data.userPresenceType === 0) statusText = 'Не в сети';
+        
+        let statusText = 'Не в сети';
+        if (data.userPresenceType === 1) statusText = 'В сети';
         if (data.userPresenceType === 2) statusText = 'В игре';
         if (data.userPresenceType === 3) statusText = 'В Roblox Studio';
+
         res.json({
             userId: userId,
             presenceType: data.userPresenceType,
             status: statusText,
             gameId: data.rootPlaceId || null
         });
-    } catch (e) { res.status(500).json({ error: 'Ошибка API' }); }
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка API' });
+    }
 });
 
-app.listen(process.env.PORT || 3000, () => console.log('Сервер запущен'));
+// Экспортируем приложение для корректной работы серверлесс-функций Vercel
+module.exports = app;
