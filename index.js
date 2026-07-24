@@ -8,7 +8,7 @@ app.use(cors({ origin: '*' }));
 app.use(express.json());
 
 // Прямой маршрут без лишних префиксов
-app.get('/status/:username', async (req, res) => {
+app.get('/:username', async (req, res) => {
     const username = req.params.username;
     
     try {
