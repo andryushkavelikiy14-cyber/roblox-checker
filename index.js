@@ -4,35 +4,28 @@ const cors = require('cors');
 
 const app = express();
 
-// Разрешаем вашему Google Сайту делать запросы без блокировок
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
-async function getUserId(username) {
+// Прямой маршрут без лишних префиксов
+app.get('/status/:username', async (req, res) => {
+    const username = req.params.username;
+    
     try {
+        // Тщательный запрос к официальному API Roblox по поиску точного имени
         const response = await axios.post('https://roblox.com', {
             usernames: [username],
             excludeBannedUsers: false
         });
-        if (response.data && response.data.data && response.data.data.length > 0) {
-            return response.data.data[0].id; // Добавили, чтобы точно взять ID из списка
+        
+        // Проверяем, вернул ли Roblox хоть одного пользователя
+        if (!response.data || !response.data.data || response.data.data.length === 0) {
+            return res.status(404).json({ error: 'Пользователь не найден' });
         }
-        return null;
-    } catch (e) { 
-        return null; 
-    }
-}
+        
+        const userId = response.data.data[0].id;
 
-// Главный роут для проверки статуса присутствия в Roblox
-app.get('/status/:username', async (req, res) => {
-    const username = req.params.username;
-    const userId = await getUserId(username);
-    
-    if (!userId) {
-        return res.status(404).json({ error: 'Пользователь не найден' });
-    }
-
-    try {
+        // Второй запрос для получения статуса (В сети / В игре)
         const presenceResponse = await axios.post('https://roblox.com', {
             userIds: [userId]
         });
@@ -50,10 +43,10 @@ app.get('/status/:username', async (req, res) => {
             status: statusText,
             gameId: data.rootPlaceId || null
         });
+        
     } catch (error) {
         res.status(500).json({ error: 'Ошибка API' });
     }
 });
 
-// Экспортируем сервер для корректной работы Vercel
 module.exports = app;
