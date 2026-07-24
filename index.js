@@ -8,20 +8,21 @@ app.use(express.json());
 
 async function getUserId(username) {
     try {
-        // Используем самый точный API для поиска ID по имени пользователя
         const response = await axios.post('https://roblox.com', {
             usernames: [username],
             excludeBannedUsers: false
         });
         
+        // Добавили, чтобы брать данные ПЕРВОГО пользователя из списка
         if (response.data && response.data.data && response.data.data.length > 0) {
-            return response.data.data[0].id; // Возвращаем ID найденного игрока
+            return response.data.data[0].id; 
         }
         return null;
     } catch (e) { 
         return null; 
     }
 }
+
 app.get('/status/:username', async (req, res) => {
     const username = req.params.username;
     const userId = await getUserId(username);
